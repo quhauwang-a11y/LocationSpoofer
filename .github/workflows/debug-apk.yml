@@ -12,10 +12,14 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
           cache: gradle
 
-      # 仓库写的是 compileSdk 37，公共 SDK 源目前只有 36.x，这里在 CI 内降一级，仅影响本次构建
+      - name: Install Android SDK platform
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
       - name: Lower compileSdk for local SDK
         run: |
           sed -i 's/compileSdk = 37/compileSdk = 36/' app/build.gradle.kts app-ui/build.gradle.kts \
@@ -25,11 +29,12 @@ jobs:
       - name: Build debug APKs
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon :app:assembleGlobalDebug
-          ./gradlew --no-daemon :app:assembleScopedDebug
+          ./gradlew --no-daemon --stacktrace :app:assembleGlobalDebug
+          ./gradlew --no-daemon --stacktrace :app:assembleScopedDebug
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: LocationSpoofer-debug
           path: app/build/outputs/apk/**/debug/*.apk
