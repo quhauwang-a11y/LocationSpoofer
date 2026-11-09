@@ -15,10 +15,11 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      - name: Install Android SDK platform
-        run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+      # 用官方 action 装 cmdline-tools 并接受 licenses，避免 sdkmanager 不在 PATH
+      - uses: android-actions/setup-android@v3
+
+      - name: Install platform 36
+        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Lower compileSdk for local SDK
         run: |
