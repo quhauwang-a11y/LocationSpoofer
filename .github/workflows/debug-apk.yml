@@ -15,17 +15,14 @@ jobs:
           java-version: '21'
           cache: gradle
 
-      # 用官方 action 装 cmdline-tools 并接受 licenses，避免 sdkmanager 不在 PATH
-      - uses: android-actions/setup-android@v3
-
-      - name: Install platform 36
-        run: sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-
-      - name: Lower compileSdk for local SDK
+      # 不用第三方 action，直接用 runner 预装的 SDK；只把 compileSdk 降到预装版本
+      - name: Lower compileSdk to preinstalled platform
         run: |
-          sed -i 's/compileSdk = 37/compileSdk = 36/' app/build.gradle.kts app-ui/build.gradle.kts \
+          sed -i 's/compileSdk = 37/compileSdk = 35/' app/build.gradle.kts app-ui/build.gradle.kts \
             core-data/build.gradle.kts service/build.gradle.kts xposed/build.gradle.kts
-          sed -i 's/targetSdk = 37/targetSdk = 36/' app/build.gradle.kts
+          sed -i 's/targetSdk = 37/targetSdk = 35/' app/build.gradle.kts
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> $GITHUB_ENV
+          ls "${ANDROID_HOME:-/usr/local/lib/android/sdk}/platforms" || true
 
       - name: Build debug APKs
         run: |
