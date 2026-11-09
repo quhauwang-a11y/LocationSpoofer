@@ -97,7 +97,9 @@ internal fun LocationHooker.hookGnssStatus(classLoader: ClassLoader) {
                                         fallbackOriginalObj = statusObj
                                     )
                                     if (spoofedStatus != null) {
-                                        innerChain.args[0] = spoofedStatus
+                                        val newArgs = innerChain.args.toTypedArray()
+                                        newArgs[0] = spoofedStatus
+                                        return@hookAllMethods innerChain.proceed(newArgs)
                                     }
                                 }
                                 return@hookAllMethods innerChain.proceed(innerChain.args.toTypedArray())
